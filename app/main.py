@@ -2,7 +2,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, validator
+from pydantic import BaseModel, field_validator
 from starlette.concurrency import run_in_threadpool
 from dotenv import load_dotenv
 import os
@@ -52,13 +52,15 @@ class AnalysisRequest(BaseModel):
     
     # validator allows you to add custom validation rules
     # here we check that the input cannot be an empty string
-    @validator('company_name')
+    @field_validator('company_name')
+    @classmethod
     def company_name_not_empty(cls, v):
         if not v.strip():
             raise ValueError('Company name cannot be empty')
         return v.strip()
     
-    @validator('jd_text')
+    @field_validator('jd_text')
+    @classmethod
     def jd_text_not_empty(cls, v):
         if not v.strip():
             raise ValueError('JD text cannot be empty')
