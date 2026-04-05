@@ -10,16 +10,40 @@ from langchain_core.tools import tool
 
 @tool
 def search_company(company_name: str) -> str:
-    """Search for information about a company including their tech stack, 
-    culture, recent news, and funding status. Use this to understand 
+    """Search for information about a company including their tech stack,
+    culture, recent news, and funding status. Use this to understand
     the company before evaluating job fit."""
     client = TavilyClient(api_key=os.environ["TAVILY_API_KEY"])
-    result = client.search(
-        query=f"{company_name} company tech stack culture engineering team 2024",
-        max_results=3
+    
+    # Use two more precise queries separately instead of one broad query.
+    # Reason: A single query trying to cover all dimensions often fails to capture any of them accurately.
+    
+    tech_results = client.search(
+        query=f"{company_name} engineering tech stack machine learning infrastructure",
+        max_results=2
     )
-    # Convert the search results to a string
-    return "\n".join([r["content"] for r in result["results"]])
+    culture_results = client.search(
+        query=f"{company_name} company culture data science team hiring 2024 2025",
+        max_results=2
+    )
+    
+    # Include source information to help the LLM assess the credibility of the information.
+    def format_results(results):
+        formatted = []
+        for r in results["results"]:
+            formatted.append(
+                f"Source: {r['url']}\n"
+                f"Title: {r['title']}\n"  
+                f"Content: {r['content']}\n"
+            )
+        return "\n---\n".join(formatted)
+    
+    return (
+        "=== Tech Stack & Engineering ===\n"
+        + format_results(tech_results)
+        + "\n\n=== Culture & Team ===\n"
+        + format_results(culture_results)
+    )
 
 @tool  
 def analyze_jd(jd_text: str) -> str:
@@ -60,5 +84,5 @@ def calculate_fit_score(
             "domain": domain_match, 
             "experience": experience_match
         }
-        
+
     }
