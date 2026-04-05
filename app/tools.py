@@ -60,4 +60,5 @@ def calculate_fit_score(
             "domain": domain_match, 
             "experience": experience_match
         }
+        
     }
