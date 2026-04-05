@@ -1,4 +1,3 @@
-# app/tools.py
 import os
 from tavily import TavilyClient
 from langchain_core.tools import tool

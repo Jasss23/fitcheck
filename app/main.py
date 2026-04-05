@@ -6,6 +6,9 @@ from pydantic import BaseModel, validator
 from starlette.concurrency import run_in_threadpool
 from dotenv import load_dotenv
 import os
+from fastapi.responses import StreamingResponse
+import json
+import asyncio
 
 load_dotenv()
 
@@ -120,6 +123,150 @@ async def analyze(request: AnalysisRequest):
             status_code=500,
             detail="Analysis failed due to an internal error. Please try again."
         )
+
+# ─────────────────────────────────────────
+# Streaming endpoint
+# SSE = Server-Sent Events
+# The principle is that the HTTP connection is kept open, and the server can continuously push data to the client
+# The format is fixed: each message starts with "data: " and ends with two newlines
+# The frontend uses the EventSource API to receive, without WebSocket
+# ─────────────────────────────────────────
+@app.post("/analyze/stream")
+async def analyze_stream(request: AnalysisRequest):
+    """
+    Streaming version of /analyze.
+    Returns Server-Sent Events so the frontend can show
+    real-time progress as each agent node completes.
+    """
+    async def event_generator():
+        # Use LangGraph's stream mode, yield once when each node completes
+        # So the frontend can see the real agent execution progress
+        
+        from app.agent import build_agent
+        
+        agent = build_agent()
+        initial_state = {
+            "messages": [],
+            "company_name": request.company_name,
+            "jd_text": request.jd_text,
+            "company_info": "",
+            "jd_analysis": "",
+            "fit_score": {},
+            "error": ""
+        }
+        
+        # node name to frontend display text mapping
+        # This is "separation of concerns": the backend should not know what text the frontend will display
+        # But in this small project, it is a reasonable tradeoff to put it here
+        step_labels = {
+            "search": "Searching company intelligence...",
+            "analyze_jd": "Parsing job requirements...",
+            "score": "Calculating fit score...",
+            "report": "Generating your report..."
+        }
+        
+        try:
+            # agent.stream() yields once when each node completes
+            # We use run_in_threadpool to wrap it, because stream() is synchronous
+            def run_stream():
+                return list(agent.stream(initial_state))
+            
+            # Run stream in the thread pool, yield SSE messages while running
+            import threading
+            results = []
+            done = threading.Event()
+            
+            def worker():
+                for step in agent.stream(initial_state):
+                    results.append(step)
+                done.set()
+            
+            thread = threading.Thread(target=worker)
+            thread.start()
+            
+            sent = 0
+            while not done.is_set() or sent < len(results):
+                if sent < len(results):
+                    step = results[sent]
+                    sent += 1
+                    
+                    for node_name, node_output in step.items():
+                        label = step_labels.get(node_name, f"Processing {node_name}...")
+                        
+                        # SSE 格式：data: {json}\n\n
+                        event_data = {
+                            "type": "step",
+                            "node": node_name,
+                            "label": label,
+                            "output": node_output
+                        }
+                        yield f"data: {json.dumps(event_data)}\n\n"
+                else:
+                    await asyncio.sleep(0.1)
+            
+            thread.join()
+            
+            # After all nodes are completed, send the final result
+            final_result = {}
+            for step in results:
+                for node_name, node_output in step.items():
+                    if node_output:
+                        final_result.update(node_output)
+            
+            final_event = {
+                "type": "complete",
+                "result": {
+                    "company": request.company_name,
+                    "fit_score": final_result.get("fit_score", {}),
+                    "report": final_result.get("messages", [{}])[-1].get("content", "") if final_result.get("messages") else "",
+                    "error": final_result.get("error", "")
+                }
+            }
+            yield f"data: {json.dumps(final_event)}\n\n"
+            
+        except Exception as e:
+            error_event = {"type": "error", "message": str(e)}
+            yield f"data: {json.dumps(error_event)}\n\n"
+    
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "X-Accel-Buffering": "no"  # Tell nginx not to buffer, push directly
+        }
+    )
+
+# ─────────────────────────────────────────
+# Feedback collection endpoint
+# ─────────────────────────────────────────
+from datetime import datetime
+
+class FeedbackRequest(BaseModel):
+    company_name: str
+    question: str
+
+@app.post("/feedback")
+async def collect_feedback(request: FeedbackRequest):
+    """
+    Collect questions from HR/hiring managers viewing the portfolio.
+    Stored locally in feedback.jsonl (one JSON per line).
+    JSONL format is append-friendly — no need to read the whole file to add a record.
+    """
+    try:
+        entry = {
+            "timestamp": datetime.utcnow().isoformat(),
+            "company": request.company_name,
+            "question": request.question
+        }
+        # JSONL: one JSON per line, append-friendly - no need to read the whole file to add a record
+        with open("feedback.jsonl", "a") as f:
+            f.write(json.dumps(entry) + "\n")
+        return {"status": "ok", "message": "Thanks for your question!"}
+    except Exception as e:
+        # Feedback collection failure should not affect the user experience, so here we handle it silently
+        print(f"Feedback collection failed: {e}")
+        return {"status": "ok", "message": "Thanks!"}
 
 # ─────────────────────────────────────────
 # STEP 4: Static file service

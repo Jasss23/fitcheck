@@ -1,0 +1,7 @@
+.venv/
+.env
+feedback.jsonl
+__pycache__/
+*.pyc
+*.ipynb
+.DS_Store
