@@ -9,6 +9,8 @@ import os
 from fastapi.responses import StreamingResponse
 import json
 import asyncio
+import random
+import time
 
 load_dotenv()
 
@@ -164,7 +166,15 @@ async def analyze_stream(request: AnalysisRequest):
             "score": "Calculating fit score...",
             "report": "Generating your report..."
         }
-        
+
+        # UX: the score node waits on the LLM for a long time. Emit synthetic
+        # dimension steps every 2–3s until the real score step completes.
+        score_dim_steps = [
+            ("score_dim_technical", "Scoring Technical dimension..."),
+            ("score_dim_domain", "Scoring Domain dimension..."),
+            ("score_dim_experience", "Scoring Experience dimension..."),
+        ]
+
         try:
             # agent.stream() yields once when each node completes
             # We use run_in_threadpool to wrap it, because stream() is synchronous
@@ -183,16 +193,27 @@ async def analyze_stream(request: AnalysisRequest):
             
             thread = threading.Thread(target=worker)
             thread.start()
-            
+
             sent = 0
+            awaiting_score = False
+            score_synth_i = 0
+            next_score_synth_at = None
+
             while not done.is_set() or sent < len(results):
                 if sent < len(results):
                     step = results[sent]
                     sent += 1
-                    
+
                     for node_name, node_output in step.items():
                         label = step_labels.get(node_name, f"Processing {node_name}...")
-                        
+
+                        if node_name == "analyze_jd":
+                            awaiting_score = True
+                            score_synth_i = 0
+                            next_score_synth_at = None
+                        elif node_name == "score":
+                            awaiting_score = False
+
                         # SSE 格式：data: {json}\n\n
                         event_data = {
                             "type": "step",
@@ -202,7 +223,24 @@ async def analyze_stream(request: AnalysisRequest):
                         }
                         yield f"data: {json.dumps(event_data)}\n\n"
                 else:
-                    await asyncio.sleep(0.1)
+                    if awaiting_score:
+                        now = time.monotonic()
+                        if next_score_synth_at is None:
+                            next_score_synth_at = now + random.uniform(2.0, 3.0)
+                        elif now >= next_score_synth_at:
+                            syn_node, syn_label = score_dim_steps[
+                                score_synth_i % len(score_dim_steps)
+                            ]
+                            score_synth_i += 1
+                            next_score_synth_at = now + random.uniform(2.0, 3.0)
+                            synth_event = {
+                                "type": "step",
+                                "node": syn_node,
+                                "label": syn_label,
+                                "output": {},
+                            }
+                            yield f"data: {json.dumps(synth_event)}\n\n"
+                    await asyncio.sleep(0.05)
             
             thread.join()
             
