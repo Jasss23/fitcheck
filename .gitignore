@@ -1,7 +1,29 @@
+# Python
 .venv/
-.env
-feedback.jsonl
+venv/
 __pycache__/
-*.pyc
+**/__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Secrets & local env
+.env
+.env.*
+!.env.example
+
+# App runtime / local data
+feedback.jsonl
+*.log
+
+# Notebooks (local experiments)
 *.ipynb
+
+# OS / editor
 .DS_Store
+.idea/
+.vscode/
+*.swp
+*.swo
