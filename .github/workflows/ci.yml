@@ -1,0 +1,47 @@
+name: CI
+
+# Trigger conditions: push to any branch, or submit a PR to main
+# so each feature branch push will run tests
+# not just main, to prevent code with bugs from being merged
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run tests
+        run: python -m pytest tests/ -v
+        env:
+          # placeholder key: tests use mock, will not actually call API
+          # but import check os.environ needs these variables to exist
+          ANTHROPIC_API_KEY: "test-key-ci-placeholder"
+          TAVILY_API_KEY: "test-key-ci-placeholder"
+
+  deploy:
+    # only execute deploy if test job passes
+    # only trigger deployment if pushed to main branch, other branches only run tests
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    steps:
+      - name: Trigger Render deployment
+        run: |
+          curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK }}"
