@@ -1,8 +1,5 @@
 name: CI
 
-# Trigger conditions: push to any branch, or submit a PR to main
-# so each feature branch push will run tests
-# not just main, to prevent code with bugs from being merged
 on:
   push:
     branches: ["**"]
@@ -17,31 +14,31 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Python 3.11
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-          cache: "pip"
+      # use uv's official action, faster than setup-python + pip
+      # it automatically reads requires-python in pyproject.toml to decide which Python to use
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
 
       - name: Install dependencies
-        run: pip install -r requirements.txt
+        run: uv sync --group dev
+        # uv sync will:
+        # 1. read the exact versions locked in uv.lock
+        # 2. install all dependencies, including dev group
+        # this ensures the CI and local use the exact same version tree
 
       - name: Run tests
-        run: python -m pytest tests/ -v
+        run: uv run pytest tests/ -v
+        # uv run will execute commands in the uv managed virtual environment
+        # no need to activate .venv first
         env:
-          # placeholder key: tests use mock, will not actually call API
-          # but import check os.environ needs these variables to exist
           ANTHROPIC_API_KEY: "test-key-ci-placeholder"
           TAVILY_API_KEY: "test-key-ci-placeholder"
 
   deploy:
-    # only execute deploy if test job passes
-    # only trigger deployment if pushed to main branch, other branches only run tests
     needs: test
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
 
     steps:
       - name: Trigger Render deployment
-        run: |
-          curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK }}"
+        run: curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK }}"

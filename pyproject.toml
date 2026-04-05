@@ -1,0 +1,21 @@
+[project]
+name = "fitcheck"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "fastapi>=0.135.3",
+    "langchain-anthropic>=1.4.0",
+    "langgraph>=1.1.6",
+    "pydantic>=2.12.5",
+    "python-dotenv>=1.2.2",
+    "tavily-python>=0.7.23",
+    "uvicorn[standard]>=0.43.0",
+]
+
+[dependency-groups]
+dev = [
+    "httpx>=0.28.1",
+    "pytest>=9.0.2",
+]
