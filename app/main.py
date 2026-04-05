@@ -12,6 +12,14 @@ import asyncio
 import random
 import time
 
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
+from starlette.requests import Request
+
+limiter = Limiter(key_func=get_remote_address)
+
+
 load_dotenv()
 
 from app.agent import run_analysis
@@ -26,6 +34,8 @@ app = FastAPI(
     description="AI-powered job fit analyzer for ML/AI engineering roles",
     version="0.1.0"
 )
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 # ─────────────────────────────────────────
 # STEP 2: CORS middleware
@@ -136,7 +146,8 @@ async def analyze(request: AnalysisRequest):
 # The frontend uses the EventSource API to receive, without WebSocket
 # ─────────────────────────────────────────
 @app.post("/analyze/stream")
-async def analyze_stream(request: AnalysisRequest):
+@limiter.limit("5/hour")
+async def analyze_stream(request: Request, body: AnalysisRequest):
     """
     Streaming version of /analyze.
     Returns Server-Sent Events so the frontend can show
@@ -151,8 +162,8 @@ async def analyze_stream(request: AnalysisRequest):
         agent = build_agent()
         initial_state = {
             "messages": [],
-            "company_name": request.company_name,
-            "jd_text": request.jd_text,
+            "company_name": body.company_name,
+            "jd_text": body.jd_text,
             "company_info": "",
             "jd_analysis": "",
             "fit_score": {},
