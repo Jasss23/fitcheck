@@ -179,6 +179,21 @@ class ResumeRAG:
         
         self.has_resume = True
         return len(chunks)
+
+    def index_resume_text(self, text: str) -> int:
+        """
+        Build resume index directly from text, bypassing PDF parsing.
+        More reliable than index_resume, as it does not depend on PDF format compatibility.
+        """
+        chunks = chunk_resume(text)
+        
+        if not chunks:
+            raise ValueError("Resume text is too short or empty.")
+        
+        ids = [f"chunk_{i}" for i in range(len(chunks))]
+        self.collection.add(documents=chunks, ids=ids)
+        self.has_resume = True
+        return len(chunks)
     
     def retrieve(self, query: str, n_results: int = 3) -> str:
         """
