@@ -519,6 +519,189 @@
       background: #1a1a1a;
     }
 
+    /* Resume optional section */
+    .resume-shell {
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      border-radius: 8px;
+      background: linear-gradient(180deg, #111111 0%, #0f0f0f 100%);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
+      margin: 2px 0 16px;
+    }
+    .resume-toggle {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: none;
+      border: none;
+      padding: 10px 12px;
+      margin: 0;
+      cursor: pointer;
+      font-family: 'Geist', system-ui, sans-serif;
+      font-size: 12px;
+      color: #cfcfcf;
+      letter-spacing: 0.02em;
+    }
+    .resume-toggle:hover { color: #ffffff; }
+    .resume-toggle-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 500;
+    }
+    .resume-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 10px rgba(0,230,118,0.7);
+      flex-shrink: 0;
+    }
+    .resume-helper {
+      font-size: 11px;
+      color: #989898;
+      padding: 0 12px 10px;
+      line-height: 1.4;
+    }
+    .resume-panel { display: none; margin: 0 12px 12px; }
+    .resume-panel.open { display: block; }
+    .resume-mode-switch {
+      display: inline-flex;
+      gap: 6px;
+      margin: 2px 0 10px;
+    }
+    .resume-mode-btn {
+      border: 1px solid rgba(255,255,255,0.24);
+      background: #151515;
+      color: #c9c9c9;
+      border-radius: 999px;
+      font-size: 11px;
+      padding: 5px 10px;
+      cursor: pointer;
+      transition: border-color 0.15s, color 0.15s, background 0.15s;
+    }
+    .resume-mode-btn:hover { color: #fff; border-color: rgba(255,255,255,0.38); }
+    .resume-mode-btn.active {
+      color: #fff;
+      border-color: rgba(0,230,118,0.8);
+      background: rgba(0,230,118,0.12);
+      box-shadow: 0 0 0 1px rgba(0,230,118,0.18) inset;
+    }
+    .resume-upload-wrap,
+    .resume-text-wrap { display: none; }
+    .resume-upload-wrap.active,
+    .resume-text-wrap.active { display: block; }
+    .resume-upload-hint {
+      font-size: 11px;
+      color: #a6a6a6;
+      margin-top: 6px;
+      line-height: 1.35;
+    }
+    .resume-file-native { display: none; }
+    .resume-file-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: #101010;
+      padding: 10px;
+    }
+    .resume-file-trigger {
+      border: 1px solid rgba(255,255,255,0.34);
+      background: #181818;
+      color: #fff;
+      font-size: 12px;
+      font-weight: 600;
+      border-radius: 6px;
+      padding: 8px 12px;
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+      white-space: nowrap;
+    }
+    .resume-file-trigger:hover {
+      border-color: rgba(255,255,255,0.52);
+      background: #212121;
+    }
+    .resume-file-name {
+      font-size: 12px;
+      color: #a9a9a9;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      flex: 1;
+    }
+    .resume-parse-row { margin-top: 8px; }
+    .resume-preview {
+      display: none;
+      margin-top: 6px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: #121212;
+      padding: 12px 12px 10px;
+    }
+    .resume-preview.visible { display: block; }
+    .resume-preview-header {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--green);
+      margin-bottom: 10px;
+    }
+    .resume-preview-item {
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      margin-bottom: 8px;
+      overflow: hidden;
+      background: #101010;
+    }
+    .resume-preview-btn {
+      width: 100%;
+      background: none;
+      border: none;
+      text-align: left;
+      padding: 9px 10px;
+      font-size: 12px;
+      color: #d5d5d5;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .resume-preview-btn:hover { background: #1b1b1b; }
+    .resume-preview-body {
+      display: none;
+      padding: 0 10px 10px;
+      font-size: 12px;
+      line-height: 1.55;
+      color: #9c9c9c;
+      white-space: pre-wrap;
+    }
+    .resume-preview-body.open { display: block; }
+    .resume-clear-link {
+      display: inline-block;
+      margin-top: 4px;
+      font-size: 12px;
+      color: #bcbcbc;
+      text-decoration: none;
+      border-bottom: 1px dotted #555;
+      cursor: pointer;
+    }
+    .resume-clear-link:hover { color: #fff; border-bottom-color: #888; }
+
+    .btn-secondary.resume-parse {
+      border-color: rgba(255,255,255,0.42);
+      color: #fff;
+      background: #1a1a1a;
+      font-weight: 600;
+    }
+    .btn-secondary.resume-parse:hover {
+      border-color: rgba(0,230,118,0.9);
+      color: #fff;
+      background: #202020;
+      box-shadow: 0 0 0 2px rgba(0,230,118,0.14);
+    }
+
     /* Spinner */
     @keyframes spin-frames {
       to { --idx: 10; }
@@ -575,6 +758,46 @@
       <div class="field-group">
         <div class="field-label">Job Description</div>
         <textarea id="jd" class="field-input" rows="7" placeholder="Paste the full job description here…" maxlength="8000"></textarea>
+      </div>
+
+      <div class="resume-shell">
+        <button id="resume-toggle" class="resume-toggle" type="button">
+          <span class="resume-toggle-label"><span class="resume-dot"></span>✦ Personalize with your resume</span>
+          <span id="resume-toggle-icon">▾</span>
+        </button>
+        <div class="resume-helper">Optional, adds personalized fit signals from your full profile. Default: upload PDF.</div>
+        <div id="resume-panel" class="resume-panel">
+          <div id="resume-input-wrap">
+            <div class="resume-mode-switch">
+              <button id="resume-mode-pdf" class="resume-mode-btn active" type="button">Upload PDF</button>
+              <button id="resume-mode-text" class="resume-mode-btn" type="button">Paste Text</button>
+            </div>
+
+            <div id="resume-upload-wrap" class="resume-upload-wrap active">
+              <input id="resume-file" class="resume-file-native" type="file" accept=".pdf,application/pdf" />
+              <div class="resume-file-row">
+                <button id="resume-file-trigger" class="resume-file-trigger" type="button">Select PDF</button>
+                <span id="resume-file-name" class="resume-file-name">No file selected</span>
+              </div>
+              <div class="resume-upload-hint">PDF only, max 5MB.</div>
+              <div class="resume-parse-row">
+                <button id="upload-resume-btn" class="btn-secondary resume-parse" type="button">Upload & Parse PDF →</button>
+              </div>
+            </div>
+
+            <div id="resume-text-wrap" class="resume-text-wrap">
+              <textarea id="resume-text" class="field-input" rows="6" placeholder="Paste your full resume text here for personalized analysis..."></textarea>
+              <div class="resume-parse-row">
+                <button id="parse-resume-btn" class="btn-secondary resume-parse" type="button">Parse Resume Text →</button>
+              </div>
+            </div>
+          </div>
+          <div id="resume-preview" class="resume-preview">
+            <div id="resume-preview-header" class="resume-preview-header"></div>
+            <div id="resume-preview-list"></div>
+            <a id="resume-clear" class="resume-clear-link">Clear and re-paste ↺</a>
+          </div>
+        </div>
       </div>
 
       <button id="analyze-btn" class="btn-primary">Analyze Fit →</button>
@@ -657,11 +880,30 @@
   let spinIdx = 0;
   let sseAbort = null;
   let lastCompanyName = '';
+  let resumeSessionId = '';
 
   const $company    = document.getElementById('company');
   const $jd         = document.getElementById('jd');
   const $btn        = document.getElementById('analyze-btn');
   const $results    = document.getElementById('results');
+  const $resumeToggle = document.getElementById('resume-toggle');
+  const $resumeToggleIcon = document.getElementById('resume-toggle-icon');
+  const $resumePanel = document.getElementById('resume-panel');
+  const $resumeInputWrap = document.getElementById('resume-input-wrap');
+  const $resumeModePdf = document.getElementById('resume-mode-pdf');
+  const $resumeModeText = document.getElementById('resume-mode-text');
+  const $resumeUploadWrap = document.getElementById('resume-upload-wrap');
+  const $resumeTextWrap = document.getElementById('resume-text-wrap');
+  const $resumeFile = document.getElementById('resume-file');
+  const $resumeFileTrigger = document.getElementById('resume-file-trigger');
+  const $resumeFileName = document.getElementById('resume-file-name');
+  const $uploadResumeBtn = document.getElementById('upload-resume-btn');
+  const $resumeText = document.getElementById('resume-text');
+  const $parseResumeBtn = document.getElementById('parse-resume-btn');
+  const $resumePreview = document.getElementById('resume-preview');
+  const $resumePreviewHeader = document.getElementById('resume-preview-header');
+  const $resumePreviewList = document.getElementById('resume-preview-list');
+  const $resumeClear = document.getElementById('resume-clear');
   const $idleLine   = document.getElementById('idle-line');
   const $termContent= document.getElementById('terminal-content');
   const $termScore  = document.getElementById('terminal-score');
@@ -685,6 +927,160 @@
     const open  = panel.classList.toggle('open');
     icon.textContent = open ? '▴' : '▾';
   };
+
+  $resumeToggle.addEventListener('click', () => {
+    const open = $resumePanel.classList.toggle('open');
+    $resumeToggleIcon.textContent = open ? '▴' : '▾';
+  });
+
+  function setResumeMode(mode) {
+    const pdf = mode !== 'text';
+    $resumeModePdf.classList.toggle('active', pdf);
+    $resumeModeText.classList.toggle('active', !pdf);
+    $resumeUploadWrap.classList.toggle('active', pdf);
+    $resumeTextWrap.classList.toggle('active', !pdf);
+  }
+  $resumeModePdf.addEventListener('click', () => setResumeMode('pdf'));
+  $resumeModeText.addEventListener('click', () => setResumeMode('text'));
+  $resumeFileTrigger.addEventListener('click', () => $resumeFile.click());
+
+  function truncateChunk(text, max = 300) {
+    if (!text) return '';
+    return text.length > max ? text.slice(0, max).trimEnd() + '…' : text;
+  }
+
+  function resetResumeUI() {
+    resumeSessionId = '';
+    $resumeText.value = '';
+    if ($resumeFile) $resumeFile.value = '';
+    if ($resumeFileName) $resumeFileName.textContent = 'No file selected';
+    setResumeMode('pdf');
+    $resumePreview.classList.remove('visible');
+    $resumePreviewHeader.textContent = '';
+    $resumePreviewList.innerHTML = '';
+    $resumeInputWrap.style.display = 'block';
+  }
+
+  function renderResumePreview(result) {
+    const chunks = Array.isArray(result.preview_chunks) ? result.preview_chunks : [];
+    $resumePreviewHeader.textContent = `Resume parsed — ${result.chunks_indexed || chunks.length} sections found`;
+    $resumePreviewList.innerHTML = '';
+
+    chunks.forEach((chunk, idx) => {
+      const item = document.createElement('div');
+      item.className = 'resume-preview-item';
+
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'resume-preview-btn';
+      btn.innerHTML = `<span>Section ${idx + 1}</span><span>▾</span>`;
+
+      const body = document.createElement('div');
+      body.className = 'resume-preview-body';
+      body.textContent = truncateChunk(chunk, 300);
+
+      btn.addEventListener('click', () => {
+        const isOpen = body.classList.toggle('open');
+        btn.lastElementChild.textContent = isOpen ? '▴' : '▾';
+      });
+
+      item.appendChild(btn);
+      item.appendChild(body);
+      $resumePreviewList.appendChild(item);
+    });
+
+    $resumeInputWrap.style.display = 'none';
+    $resumePreview.classList.add('visible');
+  }
+
+  $resumeClear.addEventListener('click', (e) => {
+    e.preventDefault();
+    resetResumeUI();
+  });
+
+  $parseResumeBtn.addEventListener('click', async () => {
+    const resumeText = $resumeText.value.trim();
+    if (!resumeText) return;
+
+    addStep('parsing resume sections...');
+    $parseResumeBtn.disabled = true;
+
+    try {
+      const res = await fetch('/resume-preview', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ resume_text: resumeText }),
+      });
+
+      if (!res.ok) {
+        let errMsg = `resume preview failed (${res.status})`;
+        try {
+          const data = await res.json();
+          if (data && (data.detail || data.message)) {
+            errMsg = data.detail || data.message;
+          }
+        } catch (_) {}
+        addStep('Error: ' + errMsg);
+        return;
+      }
+
+      const result = await res.json();
+      resumeSessionId = result.session_id || '';
+      renderResumePreview(result);
+      markDone();
+    } catch (err) {
+      addStep('Error: ' + (err.message || 'resume preview failed'));
+    } finally {
+      $parseResumeBtn.disabled = false;
+    }
+  });
+
+  async function uploadResumeFile() {
+    const file = $resumeFile.files && $resumeFile.files[0];
+    if (!file) return;
+
+    addStep('parsing resume pdf sections...');
+    $uploadResumeBtn.disabled = true;
+
+    try {
+      const form = new FormData();
+      form.append('file', file);
+      const res = await fetch('/upload-resume', {
+        method: 'POST',
+        body: form,
+      });
+
+      if (!res.ok) {
+        let errMsg = `resume upload failed (${res.status})`;
+        try {
+          const data = await res.json();
+          if (data && (data.detail || data.message)) {
+            errMsg = data.detail || data.message;
+          }
+        } catch (_) {}
+        addStep('Error: ' + errMsg);
+        return;
+      }
+
+      const result = await res.json();
+      resumeSessionId = result.session_id || '';
+      renderResumePreview(result);
+      markDone();
+    } catch (err) {
+      addStep('Error: ' + (err.message || 'resume upload failed'));
+    } finally {
+      $uploadResumeBtn.disabled = false;
+    }
+  }
+
+  $uploadResumeBtn.addEventListener('click', uploadResumeFile);
+
+  // UX: selecting a PDF immediately starts upload+parse, no second click needed.
+  $resumeFile.addEventListener('change', () => {
+    const f = $resumeFile.files && $resumeFile.files[0];
+    $resumeFileName.textContent = f ? f.name : 'No file selected';
+    if (f) uploadResumeFile();
+  });
 
   // ── Terminal helpers ──────────────────────
   function stopSpinner() {
@@ -877,6 +1273,8 @@
     if (!company_name || !jd_text) return;
 
     lastCompanyName = company_name;
+    const sessionToUse = resumeSessionId;
+    resumeSessionId = '';
 
     if (sseAbort) sseAbort.abort();
     sseAbort = new AbortController();
@@ -890,7 +1288,11 @@
       const res = await fetch('/analyze/stream', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ company_name, jd_text }),
+        body: JSON.stringify(
+          sessionToUse
+            ? { company_name, jd_text, session_id: sessionToUse }
+            : { company_name, jd_text }
+        ),
         signal: sseAbort.signal,
       });
 

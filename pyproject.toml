@@ -5,11 +5,16 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
+    "chromadb>=1.5.5",
     "fastapi>=0.135.3",
     "langchain-anthropic>=1.4.0",
     "langgraph>=1.1.6",
+    "openai>=2.30.0",
+    "pdfplumber>=0.11.9",
     "pydantic>=2.12.5",
+    "pymupdf>=1.27.2.2",
     "python-dotenv>=1.2.2",
+    "python-multipart>=0.0.24",
     "slowapi>=0.1.9",
     "tavily-python>=0.7.23",
     "uvicorn[standard]>=0.43.0",
