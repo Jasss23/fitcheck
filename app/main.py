@@ -280,7 +280,7 @@ async def analyze_stream(request: Request, body: AnalysisRequest):
             final_event = {
                 "type": "complete",
                 "result": {
-                    "company": request.company_name,
+                    "company": body.company_name,
                     "fit_score": final_result.get("fit_score", {}),
                     "report": final_result.get("messages", [{}])[-1].get("content", "") if final_result.get("messages") else "",
                     "error": final_result.get("error", "")
@@ -367,7 +367,7 @@ async def upload_resume(
         session_id = str(uuid.uuid4())
     
     # Create the RAG instance for this session
-    rag = ResumeRAG()
+    rag = ResumeRAG(session_id)
     chunk_count = rag.index_resume(contents)
     resume_sessions[session_id] = rag
     

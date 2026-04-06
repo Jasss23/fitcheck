@@ -142,15 +142,16 @@ class ResumeRAG:
     When the instance is destroyed, the in-memory data of ChromaDB is automatically cleared
     """
     
-    def __init__(self):
+    def __init__(self, session_id: str = ""):
         # in-memory client: process memory, not written to disk
+        import uuid
+        self.collection_name = session_id or str(uuid.uuid4())  
         self.client = chromadb.Client()
         self.collection = self.client.create_collection(
-            name="resume",
-            embedding_function=openai_ef,
-            # cosine distance is more suitable for semantic similarity comparison
-            metadata={"hnsw:space": "cosine"}
-        )
+        name=self.collection_name,  # 用 session_id 代替硬编码的 "resume"
+        embedding_function=openai_ef,
+        metadata={"hnsw:space": "cosine"}
+    )
         self.has_resume = False
     
     def index_resume(self, pdf_bytes: bytes) -> int:

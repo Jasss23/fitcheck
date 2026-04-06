@@ -27,6 +27,7 @@ class AgentState(TypedDict):
     jd_analysis: str        # The result of analyze_jd is stored here  
     fit_score: dict         # The result of calculate_fit_score is stored here
     error: str              # If any step fails, the error information is stored here
+    resume_context: str     # New: retrieved resume chunks, empty string if none
 
 # ─────────────────────────────────────────
 # STEP 2: Define the node functions
@@ -66,7 +67,20 @@ def score_node(state: AgentState) -> dict:
     # We don't let the LLM go wild, but give it a structured prompt
     # It must output the scores in JSON format
     # Then our code parses the JSON and calls calculate_fit_score
-    
+    if state.get("resume_context"):
+        candidate_profile = f"""Based on the candidate's actual resume (most relevant sections retrieved):
+
+                            {state["resume_context"]}
+
+                            Use the above as the ground truth for the candidate's background."""
+    else:
+        # Fallback: original fixed profile, keep the original experience for users who have not uploaded resumes
+        candidate_profile = """Senior ML Engineer with 4 years at SeaMoney/Monee.
+                            Built Transformer-based heterogeneous feature fusion models.
+                            Deployed LLM-gated CI/CD pipelines. 
+                            Experience with LangGraph, MLflow, PySpark, Airflow.
+                            MS in CS (UPenn) + MS in Quantitative Economics (UW-Madison).
+                            Singapore PR."""
     scoring_prompt = f"""Based on the following information, score the candidate fit:
 
 COMPANY INFO (summary):
@@ -76,12 +90,7 @@ JOB DESCRIPTION (key parts):
 {state["jd_text"][:1500]}
 
 CANDIDATE PROFILE:
-- Senior ML Engineer, 4 years at SeaMoney/Monee
-- Built Transformer-based heterogeneous feature fusion models
-- LLM-gated CI/CD, LangGraph agentic pipelines
-- MLflow, PySpark, Airflow
-- MS CS (UPenn) + MS Quantitative Economics (UW-Madison)
-- Singapore PR
+{candidate_profile}
 
 Return ONLY a JSON object. No markdown, no code blocks, no explanation.
 Start with {{ and end with }}.
@@ -90,7 +99,7 @@ Start with {{ and end with }}.
     "technical_match": <int 0-10>,
     "domain_match": <int 0-10>,
     "experience_match": <int 0-10>,
-    "reasoning": "<one sentence>"
+    "reasoning": "<one sentence explaining the scores>"
 }}"""
 
     try:
@@ -186,7 +195,7 @@ def build_agent():
 # STEP 4: Entry function (for FastAPI and testing)
 # ─────────────────────────────────────────
 
-def run_analysis(company_name: str, jd_text: str) -> dict:
+def run_analysis(company_name: str, jd_text: str, resume_context: str = "") -> dict:
     """Run the complete fit analysis and return the structured result"""
     agent = build_agent()
     
@@ -197,7 +206,8 @@ def run_analysis(company_name: str, jd_text: str) -> dict:
         "company_info": "",
         "jd_analysis": "",
         "fit_score": {},
-        "error": ""
+        "error": "",
+        "resume_context": resume_context
     }
 
     for step in agent.stream(initial_state):
