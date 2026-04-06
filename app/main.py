@@ -88,6 +88,45 @@ class AnalysisResponse(BaseModel):
     report: str
     error: str
 
+class ResumePreviewRequest(BaseModel):
+    resume_text: str
+    
+    @field_validator('resume_text')
+    @classmethod
+    def text_not_empty(cls, v):
+        if len(v.strip()) < 50:
+            raise ValueError('Resume text too short')
+        return v.strip()
+
+@app.post("/resume-preview")
+async def resume_preview(body: ResumePreviewRequest):
+    """
+    Upload resume text, build index, return all chunks.
+    
+    This endpoint builds the index and returns all chunks.
+    """
+    import uuid
+    session_id = str(uuid.uuid4())
+    
+    rag = ResumeRAG()
+    try:
+        chunk_count = rag.index_resume_text(body.resume_text)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    
+    resume_sessions[session_id] = rag
+    
+    # Return all chunks, no retrieval
+    # Reason: Retrieval needs a query, but in the preview stage there is no JD
+    # Directly display the chunk results to let users judge "whether the resume is correctly understood"
+    # More honest and useful than using a guess query for retrieval
+    return {
+        "session_id": session_id,
+        "chunks_indexed": chunk_count,
+        "preview_chunks": rag.chunks,
+        "message": f"Resume parsed into {chunk_count} sections"
+    }
+
 # ─────────────────────────────────────────
 # Endpoint definition
 # ─────────────────────────────────────────
@@ -374,6 +413,7 @@ async def upload_resume(
     return {
         "session_id": session_id,
         "chunks_indexed": chunk_count,
+        "preview_chunks": rag.chunks[:5],
         "message": f"Resume indexed successfully ({chunk_count} sections)"
     }
 

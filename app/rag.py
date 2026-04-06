@@ -148,10 +148,11 @@ class ResumeRAG:
         self.collection_name = session_id or str(uuid.uuid4())  
         self.client = chromadb.Client()
         self.collection = self.client.create_collection(
-        name=self.collection_name,  # 用 session_id 代替硬编码的 "resume"
+        name=self.collection_name,  # use session_id instead of hardcoded "resume"
         embedding_function=openai_ef,
         metadata={"hnsw:space": "cosine"}
-    )
+    )   
+        self.chunks = [] # New: store the chunks here
         self.has_resume = False
     
     def index_resume(self, pdf_bytes: bytes) -> int:
@@ -161,12 +162,11 @@ class ResumeRAG:
         """
         text = extract_text_from_pdf(pdf_bytes)
         chunks = chunk_resume(text)
-
         if not chunks:
             raise ValueError("Could not extract meaningful text from PDF. "
                              "Please ensure the PDF contains selectable text (not a scanned image).")
         print(f"Indexed {len(chunks)} chunks from resume")
-        
+        self.chunks = chunks
         # ChromaDB requires each document to have a unique ID
         ids = [f"chunk_{i}" for i in range(len(chunks))]
         
@@ -178,6 +178,7 @@ class ResumeRAG:
         )
         
         self.has_resume = True
+        
         return len(chunks)
 
     def index_resume_text(self, text: str) -> int:
@@ -189,7 +190,7 @@ class ResumeRAG:
         
         if not chunks:
             raise ValueError("Resume text is too short or empty.")
-        
+        self.chunks = chunks
         ids = [f"chunk_{i}" for i in range(len(chunks))]
         self.collection.add(documents=chunks, ids=ids)
         self.has_resume = True
