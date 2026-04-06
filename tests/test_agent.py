@@ -1,6 +1,6 @@
 # Use mock to test, without actually calling the API
 # The idea of mock is to replace "calling external services" with "pretending to call, returning preset results"
-
+import os
 import pytest
 from unittest.mock import patch, MagicMock
 
@@ -52,6 +52,10 @@ def test_api_analyze_empty_input(client):
     # Pydantic validator should return 422 Unprocessable Entity
     assert response.status_code == 422
 
+@pytest.mark.skipif(
+    not os.environ.get("OPENAI_API_KEY"),
+    reason="OPENAI_API_KEY not set — skipping RAG tests"
+)
 def test_resume_rag_indexing():
     """测试简历文字能被正确索引和检索"""
     from app.rag import ResumeRAG
@@ -76,6 +80,11 @@ Agentic Coding, MLflow, PySpark."""
     assert chunk_count >= 1, f"Expected at least 2 chunks, got {chunk_count}"
     assert rag.has_resume is True
 
+
+@pytest.mark.skipif(
+    not os.environ.get("OPENAI_API_KEY"),
+    reason="OPENAI_API_KEY not set — skipping RAG tests"
+)
 def test_resume_rag_retrieval_relevance():
     """Test retrieval result and query relevance"""
     from app.rag import ResumeRAG

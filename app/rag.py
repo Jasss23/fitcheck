@@ -11,10 +11,6 @@ load_dotenv()
 
 # ─────────────────────────────────────────
 # Embedding function
-openai_ef = embedding_functions.OpenAIEmbeddingFunction(
-    api_key=os.environ.get("OPENAI_API_KEY"),
-    model_name="text-embedding-3-small"
-)
 
 def extract_text_from_pdf(pdf_bytes: bytes) -> str:
     """
@@ -143,6 +139,11 @@ class ResumeRAG:
     """
     
     def __init__(self, session_id: str = ""):
+        # initialize the embedding function
+        openai_ef = embedding_functions.OpenAIEmbeddingFunction(
+    api_key=os.environ.get("OPENAI_API_KEY"),
+    model_name="text-embedding-3-small"
+)
         # in-memory client: process memory, not written to disk
         import uuid
         self.collection_name = session_id or str(uuid.uuid4())  
