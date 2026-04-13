@@ -53,8 +53,8 @@ def test_api_analyze_empty_input(client):
     assert response.status_code == 422
 
 @pytest.mark.skipif(
-    not os.environ.get("OPENAI_API_KEY"),
-    reason="OPENAI_API_KEY not set — skipping RAG tests"
+    not os.environ.get("GOOGLE_CLOUD_PROJECT"),
+    reason="GOOGLE_CLOUD_PROJECT not set — skipping Vertex AI embedding tests"
 )
 def test_resume_rag_indexing():
     """测试简历文字能被正确索引和检索"""
@@ -82,8 +82,8 @@ Agentic Coding, MLflow, PySpark."""
 
 
 @pytest.mark.skipif(
-    not os.environ.get("OPENAI_API_KEY"),
-    reason="OPENAI_API_KEY not set — skipping RAG tests"
+    not os.environ.get("GOOGLE_CLOUD_PROJECT"),
+    reason="GOOGLE_CLOUD_PROJECT not set — skipping Vertex AI embedding tests"
 )
 def test_resume_rag_retrieval_relevance():
     """Test retrieval result and query relevance"""
@@ -112,11 +112,15 @@ Machine Learning, Python, PySpark, MLflow."""
     assert "LLM" in result or "CI/CD" in result or "code review" in result, \
         f"Expected LLM-related content in retrieval, got: {result[:200]}"
 
-def test_score_node_uses_resume_context():
+@patch('app.agent.llm')
+def test_score_node_uses_resume_context(mock_llm):
     """Test score_node uses real resume instead of fixed profile when resume_context is present"""
     from app.agent import score_node
-    
-    # State with resume_context
+
+    mock_response = MagicMock()
+    mock_response.content = '{"technical_match": 7, "domain_match": 6, "experience_match": 7, "reasoning": "Strong LLM background"}'
+    mock_llm.invoke.return_value = mock_response
+
     state_with_resume = {
         "company_info": "Tech company looking for ML engineers",
         "jd_text": "Senior ML Engineer with LLM experience required",
@@ -124,22 +128,22 @@ def test_score_node_uses_resume_context():
         "error": "",
         "fit_score": {}
     }
-    
-    # State without resume_context (fallback path)
+
     state_without_resume = {
-        "company_info": "Tech company looking for ML engineers", 
+        "company_info": "Tech company looking for ML engineers",
         "jd_text": "Senior ML Engineer with LLM experience required",
         "resume_context": "",
         "error": "",
         "fit_score": {}
     }
-    
-    # Both should return valid fit_score, no error
+
     result_with = score_node(state_with_resume)
     result_without = score_node(state_without_resume)
-    
-    assert "fit_score" in result_with or "error" in result_with
-    assert "fit_score" in result_without or "error" in result_without
+
+    assert "fit_score" in result_with
+    assert "fit_score" in result_without
+    # When resume_context is provided the prompt should include it — verify llm was called twice
+    assert mock_llm.invoke.call_count == 2
 
 @pytest.fixture
 def client():
