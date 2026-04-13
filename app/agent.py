@@ -2,7 +2,7 @@ from dotenv import load_dotenv
 load_dotenv()  # First thing to do
 
 # from langchain_anthropic import ChatAnthropic
-from langchain_google_vertexai import ChatVertexAI
+from langchain_google_genai import ChatGoogleGenerativeAI
 from typing import TypedDict, Annotated
 from langgraph.graph import StateGraph, END
 from langgraph.prebuilt import ToolNode
@@ -38,7 +38,7 @@ class AgentState(TypedDict):
 
 # Initialize the LLM
 # llm = ChatAnthropic(model="claude-sonnet-4-6", temperature=0)
-llm = ChatVertexAI(model="gemini-2.0-flash", temperature=0)
+llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=0)
 
 
 def search_node(state: AgentState) -> dict:
