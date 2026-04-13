@@ -149,10 +149,10 @@ async def analyze(request: AnalysisRequest):
     """
     # Check if the API key exists
     # This is the "fail fast" principle: instead of letting the request run for 10 seconds and then telling the user the key is wrong, check it at the beginning and return a meaningful error immediately
-    if not os.environ.get("ANTHROPIC_API_KEY"):
+    if not os.environ.get("GOOGLE_API_KEY"):
         raise HTTPException(
             status_code=500,
-            detail="ANTHROPIC_API_KEY not configured"
+            detail="GOOGLE_API_KEY not configured"
         )
     if not os.environ.get("TAVILY_API_KEY"):
         raise HTTPException(
