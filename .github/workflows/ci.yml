@@ -31,14 +31,19 @@ jobs:
         # uv run will execute commands in the uv managed virtual environment
         # no need to activate .venv first
         env:
-          ANTHROPIC_API_KEY: "test-key-ci-placeholder"
-          TAVILY_API_KEY: "test-key-ci-placeholder"
+          GOOGLE_API_KEY: "test-key-ci-placeholder"   # real key not needed: LLM calls are mocked
+          TAVILY_API_KEY: "test-key-ci-placeholder"   # real key not needed: search_company not called in unit tests
+          # GOOGLE_CLOUD_PROJECT intentionally unset — Vertex AI embedding tests are skipped in CI
 
-  deploy:
-    needs: test
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-
-    steps:
-      - name: Trigger Render deployment
-        run: curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK }}"
+  # deploy:
+  #   needs: test
+  #   runs-on: ubuntu-latest
+  #   if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+  #   TODO: replace Render deploy hook with Cloud Run deployment
+  #   steps:
+  #     - name: Deploy to Cloud Run
+  #       run: |
+  #         gcloud run deploy fitcheck \
+  #           --image ${{ secrets.GCR_IMAGE }} \
+  #           --region us-central1 \
+  #           --platform managed
