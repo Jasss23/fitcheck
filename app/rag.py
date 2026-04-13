@@ -3,11 +3,39 @@
 
 import pdfplumber
 import chromadb
-from chromadb.utils import embedding_functions
+import vertexai
+from vertexai.language_models import TextEmbeddingModel, TextEmbeddingInput
 import os
 from dotenv import load_dotenv
 
 load_dotenv()
+
+# ─────────────────────────────────────────
+# Custom ChromaDB embedding wrapper for Google Vertex AI
+#
+# ChromaDB has no native Vertex AI support, so we write a thin wrapper.
+#
+# Dimension note: OpenAI text-embedding-3-small = 1536 dims
+#                 Google text-embedding-004      = 768  dims
+# The dimension change is a non-issue here: ResumeRAG uses an in-memory
+# ChromaDB collection (privacy-by-design — see comment below). Every
+# session starts fresh with a new collection, so there is no persisted
+# index to rebuild. This is an accidental benefit of the privacy decision.
+# ─────────────────────────────────────────
+class GoogleVertexEmbeddingFunction:
+    """
+    Thin wrapper that makes Google Vertex AI text-embedding-004 compatible
+    with ChromaDB's EmbeddingFunction protocol (duck-typed __call__).
+    """
+
+    def __init__(self, model_name: str = "text-embedding-004"):
+        vertexai.init(project=os.environ.get("GOOGLE_CLOUD_PROJECT"))
+        self.model = TextEmbeddingModel.from_pretrained(model_name)
+
+    def __call__(self, input: list[str]) -> list[list[float]]:
+        inputs = [TextEmbeddingInput(text, "RETRIEVAL_DOCUMENT") for text in input]
+        result = self.model.get_embeddings(inputs)
+        return [e.values for e in result]
 
 # ─────────────────────────────────────────
 # Embedding function
@@ -139,21 +167,19 @@ class ResumeRAG:
     """
     
     def __init__(self, session_id: str = ""):
-        # initialize the embedding function
-        openai_ef = embedding_functions.OpenAIEmbeddingFunction(
-    api_key=os.environ.get("OPENAI_API_KEY"),
-    model_name="text-embedding-3-small"
-)
-        # in-memory client: process memory, not written to disk
         import uuid
-        self.collection_name = session_id or str(uuid.uuid4())  
+        self.collection_name = session_id or str(uuid.uuid4())
+        # in-memory client: process memory, not written to disk
+        # Reason: resume is sensitive personal data
+        #         session ends and data is cleared, protect user privacy
+        #         each upload re-indexes to ensure fresh data
         self.client = chromadb.Client()
         self.collection = self.client.create_collection(
-        name=self.collection_name,  # use session_id instead of hardcoded "resume"
-        embedding_function=openai_ef,
-        metadata={"hnsw:space": "cosine"}
-    )   
-        self.chunks = [] # New: store the chunks here
+            name=self.collection_name,
+            embedding_function=GoogleVertexEmbeddingFunction(),
+            metadata={"hnsw:space": "cosine"}
+        )
+        self.chunks = []
         self.has_resume = False
     
     def index_resume(self, pdf_bytes: bytes) -> int:
